@@ -1,0 +1,96 @@
+#!/usr/bin/env python2
+"""
+Run nCoda.
+
+Copyright 2018 Christopher Antila
+"""
+
+import os.path
+import subprocess
+import time
+
+
+APP_NAME = 'nCoda'
+APP_RELEASE = '???'
+FUJIAN_RELEASE = '???'
+JULIUS_RELEASE = '???'
+LYCHEE_RELEASE = '???'
+
+# Number of seconds between checking whether Fujian or Julius has exited.
+_POLL_TIMEOUT = 1
+
+_STARTUP_TEXT = """\
+{app_name} v{app_release}  (Fujian {fjn_r},  Julius {jls_r},  Lychee {lyc_r})
+Copyright 2015 to 2018, nCoda Contributors.
+
+\tThis program comes with ABSOLUTELY NO WARRANTY. In addition,
+\tnCoda is free software, and you are welcome to redistribute it
+\tunder certain conditions. For more information, please refer
+\tto the GNU General Public Licence 3.0, available on the Web:
+\thttps://www.gnu.org/licenses/gpl-3.0.html
+""".format(
+    app_name=APP_NAME,
+    app_release=APP_RELEASE,
+    fjn_r=FUJIAN_RELEASE,
+    jls_r=JULIUS_RELEASE,
+    lyc_r=LYCHEE_RELEASE,
+)
+
+_FUJIAN_PATH = './fujian.pex'
+_JULIUS_PATH = './julius'
+_PYTHON_PATH = 'python'
+
+
+def main():
+    """
+    Run nCoda.
+    """
+    if not os.path.exists(_FUJIAN_PATH):
+        print('ERROR: Fujian is not at the expected path. Cannot start nCoda.')
+        raise SystemExit(1)
+
+    if os.path.exists(_JULIUS_PATH):
+        julius_command = [_JULIUS_PATH]
+    else:
+        print('To exit, type Ctrl + c\n')
+        julius_command = [_PYTHON_PATH, '-m', 'SimpleHTTPServer']
+
+    exit_code = 0
+
+    procs = []
+    try:
+        procs.append(subprocess.Popen([_FUJIAN_PATH]))
+        procs.append(subprocess.Popen(julius_command))
+        while True:
+            for proc in procs:
+                proc.poll()
+            if any([proc.returncode is not None for proc in procs]):
+                break
+            time.sleep(_POLL_TIMEOUT)
+    except Exception as exc:
+        print('ERROR: Unknown problem; description is below. Cannot start nCoda.')
+        print(str(exc))
+        exit_code += 1
+    finally:
+        for proc in procs:
+            try:
+                proc.terminate()
+                proc.wait()
+                if proc.returncode is None:
+                    proc.kill()
+            except OSError as exc:
+                if 'No such process' not in str(exc):
+                    print('ERROR: Problem while shutting down; description is below.')
+                    print(str(exc))
+                    exit_code += 1
+            except Exception as exc:
+                print('ERROR: Problem while shutting down; description is below.')
+                print(str(exc))
+                exit_code += 1
+
+        raise SystemExit(exit_code)
+
+
+if __name__ == '__main__':
+    print(_STARTUP_TEXT)
+    main()
