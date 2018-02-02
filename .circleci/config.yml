@@ -1,0 +1,24 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: ncodamusic/linux-bundles:26
+    steps:
+      - checkout
+
+      - run:
+          name: Do the whole build.
+          command: |
+            make clone-repos
+            make build-venv
+            make finish-ncoda
+            make build-pex
+            make install-julius
+            make build-julius
+            make archive-http
+            make archive-electron
+
+      - store_artifacts:
+          path: /root/ncoda-electron.xz
+      - store_artifacts:
+          path: /root/ncoda-http.xz
