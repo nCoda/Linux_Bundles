@@ -1,4 +1,5 @@
 version: 2
+
 jobs:
   build:
     docker:
@@ -20,6 +21,12 @@ jobs:
             make archive-electron
 
       - store_artifacts:
-          path: /root/ncoda-electron.xz
+          path: /root/workdir/ncoda-electron.xz
       - store_artifacts:
-          path: /root/ncoda-http.xz
+          path: /root/workdir/ncoda-http.xz
+
+workflows:
+  version: 2
+  build-release:
+    jobs:
+      - build
