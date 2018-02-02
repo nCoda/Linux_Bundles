@@ -4,7 +4,7 @@ JULIUS_RELEASE=`cat JULIUS_RELEASE`
 LYCHEE_RELEASE=`cat LYCHEE_RELEASE`
 NCODA_RELEASE=`date +'%y%m-%d.%H%M'`
 
-WORK_DIR=/root
+WORK_DIR=/root/workdir
 REPO_DIR=repos
 REPO_PATH=$(WORK_DIR)/$(REPO_DIR)
 VENV_DIR=ncoda-venv

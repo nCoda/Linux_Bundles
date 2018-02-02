@@ -3,7 +3,7 @@ jobs:
   build:
     docker:
       - image: ncodamusic/linux-bundles:26
-    working_directory: /root
+    working_directory: /root/workdir
     steps:
       - checkout
 
