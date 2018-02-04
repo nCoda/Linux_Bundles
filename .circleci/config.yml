@@ -9,36 +9,49 @@ jobs:
       - checkout
 
       - run:
+          name: Clone the repositories.
+          command: make clone-repos
+
+      - run:
           name: Make the Circle CI cache key.
           command: make circle-cache-key
 
+
       - restore_cache:
           keys:
-            - v1-npm-{{ checksum "circle-cache-key" }}
             - v1-pypi-{{ checksum "circle-cache-key" }}
-
       - run:
-          name: Do the whole build.
-          command: |
-            make clone-repos
-            make build-venv
-            make finish-ncoda
-            make build-pex
-            make install-julius
-            make build-julius
-            make archive-http
-            make archive-electron
-
-      - save_cache:
-          paths:
-            - "/usr/local/share/.cache/yarn/v1"
-          key: v1-npm-{{ checksum "circle-cache-key" }}
-          when: on_success
+          name: Install Python dependencies.
+          command: make build-venv
       - save_cache:
           paths:
             - "/root/.cache/pip"
           key: v1-pypi-{{ checksum "circle-cache-key" }}
           when: on_success
+
+
+      - restore_cache:
+          keys:
+            - v1-npm-{{ checksum "circle-cache-key" }}
+      - run:
+          name: Install JavaScript dependencies.
+          command: make install-julius
+      - save_cache:
+          paths:
+            - "/usr/local/share/.cache/yarn/v1"
+          key: v1-npm-{{ checksum "circle-cache-key" }}
+          when: on_success
+
+
+      - run:
+          name: Do the whole build.
+          command: |
+            make finish-ncoda
+            make build-pex
+            make build-julius
+            make archive-http
+            make archive-electron
+
 
       - store_artifacts:
           path: /root/workdir/ncoda-electron.xz
