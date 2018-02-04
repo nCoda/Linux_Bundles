@@ -1,10 +1,13 @@
 version: 2
 
+defaults: &defaults
+  docker:
+    - image: ncodamusic/linux-bundles:26
+  working_directory: /root/workdir
+
 jobs:
-  build:
-    docker:
-      - image: ncodamusic/linux-bundles:26
-    working_directory: /root/workdir
+  clone_repos:
+    <<: *defaults
     steps:
       - checkout
 
@@ -38,6 +41,17 @@ jobs:
           key: v1-repo-{{ checksum "LYCHEE_RELEASE" }}
           when: on_success
 
+      - persist_to_workspace:
+          root: /root/workdir
+          paths:
+            - circle-cache-key
+            - repos
+
+  build:
+    <<: *defaults
+    steps:
+      - attach_workspace:
+          at: /root/workdir
 
       - run:
           name: Install Python dependencies
@@ -79,4 +93,7 @@ workflows:
   version: 2
   build-release:
     jobs:
+      - clone_repos
       - build
+          requires:
+            - clone_repos
