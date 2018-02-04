@@ -25,6 +25,9 @@ SOURCE_VENV=source $(VENV_PATH)/bin/activate
 help:
 	@echo "hi!"
 
+circle-cache-key:
+	@echo `date +'%y%m'` > circle-cache-key
+
 clone-repos:
 	@echo "Cloning the repositories..."
 	mkdir -p $(REPO_DIR)
@@ -91,4 +94,4 @@ archive-electron:
 	tar -cJf $(WORK_DIR)/$(ELECTRON_ARCHIVE_DIR).xz $(ELECTRON_ARCHIVE_DIR)
 
 
-PHONY: .build .clone-repos .build-venv .build-pex .build-julius .archive-http .archive-electron
+PHONY: .circle-cache-key .build .clone-repos .build-venv .build-pex .build-julius .archive-http .archive-electron

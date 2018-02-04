@@ -9,6 +9,15 @@ jobs:
       - checkout
 
       - run:
+          name: Make the Circle CI cache key.
+          command: make circle-cache-key
+
+      - restore_cache:
+          keys:
+            - v1-npm-{{ checksum "circle-cache-key" }}
+            - v1-pypi-{{ checksum "circle-cache-key" }}
+
+      - run:
           name: Do the whole build.
           command: |
             make clone-repos
@@ -19,6 +28,17 @@ jobs:
             make build-julius
             make archive-http
             make archive-electron
+
+      - save_cache:
+          paths:
+            - "/usr/local/share/.cache/yarn/v1"
+          key: v1-npm-{{ checksum "circle-cache-key" }}
+          when: on_success
+      - save_cache:
+          paths:
+            - "/root/.cache/pip"
+          key: v1-pypi-{{ checksum "circle-cache-key" }}
+          when: on_success
 
       - store_artifacts:
           path: /root/workdir/ncoda-electron.xz
