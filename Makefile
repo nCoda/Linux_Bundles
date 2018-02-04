@@ -31,9 +31,9 @@ circle-cache-key:
 clone-repos:
 	@echo "Cloning the repositories..."
 	mkdir -p $(REPO_DIR)
-	git clone --depth 1 https://github.com/nCoda/fujian.git -b $(FUJIAN_RELEASE) $(REPO_PATH)/fujian
-	git clone --depth 1 https://github.com/nCoda/julius.git -b $(JULIUS_RELEASE) $(REPO_PATH)/julius
-	git clone --depth 1 https://github.com/nCoda/lychee.git -b $(LYCHEE_RELEASE) $(REPO_PATH)/lychee
+	-git clone --depth 1 https://github.com/nCoda/fujian.git -b $(FUJIAN_RELEASE) $(REPO_PATH)/fujian
+	-git clone --depth 1 https://github.com/nCoda/julius.git -b $(JULIUS_RELEASE) $(REPO_PATH)/julius
+	-git clone --depth 1 https://github.com/nCoda/lychee.git -b $(LYCHEE_RELEASE) $(REPO_PATH)/lychee
 	cd $(REPO_PATH)/julius; \
 	git submodule init; \
 	git submodule update
