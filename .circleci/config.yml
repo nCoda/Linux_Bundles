@@ -94,6 +94,6 @@ workflows:
   build-release:
     jobs:
       - clone_repos
-      - build
+      - build:
           requires:
             - clone_repos
