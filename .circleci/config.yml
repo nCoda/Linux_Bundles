@@ -8,12 +8,36 @@ jobs:
     steps:
       - checkout
 
+      - restore_cache:
+          keys:
+            - v1-repo-{{ checksum "FUJIAN_RELEASE" }}
+      - restore_cache:
+          keys:
+            - v1-repo-{{ checksum "JULIUS_RELEASE" }}
+      - restore_cache:
+          keys:
+            - v1-repo-{{ checksum "LYCHEE_RELEASE" }}
       - run:
-          name: Clone the repositories.
+          name: Clone the repositories
           command: make clone-repos
+      - save_cache:
+          paths:
+            - "/root/workdir/repos/fujian"
+          key: v1-repo-{{ checksum "FUJIAN_RELEASE" }}
+          when: on_success
+      - save_cache:
+          paths:
+            - "/root/workdir/repos/julius"
+          key: v1-repo-{{ checksum "JULIUS_RELEASE" }}
+          when: on_success
+      - save_cache:
+          paths:
+            - "/root/workdir/repos/lychee"
+          key: v1-repo-{{ checksum "LYCHEE_RELEASE" }}
+          when: on_success
 
       - run:
-          name: Make the Circle CI cache key.
+          name: Make the Circle CI cache key
           command: make circle-cache-key
 
 
@@ -21,7 +45,7 @@ jobs:
           keys:
             - v1-pypi-{{ checksum "circle-cache-key" }}
       - run:
-          name: Install Python dependencies.
+          name: Install Python dependencies
           command: make build-venv
       - save_cache:
           paths:
@@ -34,7 +58,7 @@ jobs:
           keys:
             - v1-npm-{{ checksum "circle-cache-key" }}
       - run:
-          name: Install JavaScript dependencies.
+          name: Install JavaScript dependencies
           command: make install-julius
       - save_cache:
           paths:
@@ -44,7 +68,7 @@ jobs:
 
 
       - run:
-          name: Do the whole build.
+          name: Do the whole build
           command: |
             make finish-ncoda
             make build-pex
