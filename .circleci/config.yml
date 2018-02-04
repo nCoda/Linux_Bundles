@@ -20,8 +20,6 @@ jobs:
             - v1-repo-{{ checksum "FUJIAN_RELEASE" }}
             - v1-repo-{{ checksum "JULIUS_RELEASE" }}
             - v1-repo-{{ checksum "LYCHEE_RELEASE" }}
-            - v1-pypi-{{ checksum "circle-cache-key" }}
-            - v1-npm-{{ checksum "circle-cache-key" }}
       - run:
           name: Clone the repositories
           command: make clone-repos
@@ -47,14 +45,15 @@ jobs:
             - circle-cache-key
             - repos
 
-  build:
+  install-py:
     <<: *defaults
     steps:
       - checkout
-
       - attach_workspace:
           at: /root/workdir
-
+      - restore_cache:
+          keys:
+            - v1-pypi-{{ checksum "circle-cache-key" }}
       - run:
           name: Install Python dependencies
           command: make build-venv
@@ -63,8 +62,20 @@ jobs:
             - "/root/.cache/pip"
           key: v1-pypi-{{ checksum "circle-cache-key" }}
           when: on_success
+      - persist_to_workspace:
+          root: /root/workdir
+          paths:
+            - ncoda-venv
 
-
+  install-js:
+    <<: *defaults
+    steps:
+      - checkout
+      - attach_workspace:
+          at: /root/workdir
+      - restore_cache:
+          keys:
+            - v1-npm-{{ checksum "circle-cache-key" }}
       - run:
           name: Install JavaScript dependencies
           command: make install-julius
@@ -74,20 +85,64 @@ jobs:
             - "/root/.electron"
           key: v1-npm-{{ checksum "circle-cache-key" }}
           when: on_success
+      - persist_to_workspace:
+          root: /root/workdir
+          paths:
+            - repos/julius
 
-
+  build-py:
+    <<: *defaults
+    steps:
+      - checkout
+      - attach_workspace:
+          at: /root/workdir
       - run:
-          name: Do the whole build
+          name: Build the Python bundle
+          command: make build-pex
+      - persist_to_workspace:
+          root: /root/workdir
+          paths:
+            - fujian.pex
+
+  build-js:
+    <<: *defaults
+    steps:
+      - checkout
+      - attach_workspace:
+          at: /root/workdir
+      - run:
+          name: Build the Front-end assets
+          command: make build-julius
+      - persist_to_workspace:
+          root: /root/workdir
+          paths:
+            - repos/julius/build
+
+  package-electron:
+    <<: *defaults
+    steps:
+      - checkout
+      - attach_workspace:
+          at: /root/workdir
+      - run:
+          name: Make the Electron bundle
           command: |
             make finish-ncoda
-            make build-pex
-            make build-julius
-            make archive-http
             make archive-electron
-
-
       - store_artifacts:
           path: /root/workdir/ncoda-electron.xz
+
+  package-http:
+    <<: *defaults
+    steps:
+      - checkout
+      - attach_workspace:
+          at: /root/workdir
+      - run:
+          name: Make the HTTP bundle
+          command: |
+            make finish-ncoda
+            make archive-http
       - store_artifacts:
           path: /root/workdir/ncoda-http.xz
 
@@ -96,6 +151,26 @@ workflows:
   build-release:
     jobs:
       - clone_repos
-      - build:
+
+      - install-py:
           requires:
             - clone_repos
+      - install-js:
+          requires:
+            - clone_repos
+
+      - build-py:
+          requires:
+            - install-py
+      - build-js:
+          requires:
+            - install-js
+
+      - package-electron:
+          requires:
+            - build-py
+            - build-js
+      - package-http:
+          requires:
+            - build-py
+            - build-js
