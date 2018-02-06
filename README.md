@@ -27,4 +27,5 @@ $ make archive-http
 $ make archive-electron
 ```
 
-Your distribution bundles will be available at `/root/ncoda-electron.xz` and `/root/ncoda-http.xz`.
+Your distribution bundles will be available at `/root/workdir/ncoda-electron.xz` and
+`/root/workdir/ncoda-http.xz`.
